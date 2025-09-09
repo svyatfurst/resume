@@ -27,6 +27,8 @@ function MoveCamera(){
   car.position.y = t * -0.005;
   camera.position.z = t * -0.1;
   camera.position.y = t * -0.005 + 20;
+  pointLight.position.z = car.position.z;
+  carLight.position.z = car.position.z;
 }
 
 // Creating scene, camera and renderer
@@ -40,16 +42,28 @@ const renderer = new THREE.WebGLRenderer({
 // Setting scene size and ratio
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setClearColor(0xFF8D7A, 1);
+renderer.setClearColor(0x080707, 1);
 
 //Adding light to the scene
-const ambientLight = new THREE.AmbientLight(0xffffff, 1);
-ambientLight.intensity = 2;
-scene.add(ambientLight);
+// const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+// ambientLight.intensity = 0.05;
+// scene.add(ambientLight);
+
+// Point light
+const pointLight = new THREE.PointLight(0xffffff, 1);
+pointLight.position.set(100, 50, 10);
+pointLight.intensity = 20000;
+scene.add(pointLight);
+
+// Car Point light
+const carLight = new THREE.PointLight(0xffffff, 1, 100);
+carLight.position.set(-15, 10, 0);
+carLight.intensity = 100;
+scene.add(carLight);
 
 // Adding grid helper
-const gridHelper = new THREE.GridHelper(200, 50);
-scene.add(gridHelper);
+// const gridHelper = new THREE.GridHelper(200, 50);
+// scene.add(gridHelper);
 
 // Adding controls to the scene
 // const controls = new OrbitControls(camera, renderer.domElement);
@@ -62,7 +76,14 @@ document.querySelector('.scrolling').addEventListener('scroll', MoveCamera);
 const terrain = await LoadModel(import.meta.env.BASE_URL + 'models/mars_landscape.glb')
 terrain.scale.set(75, 75, 75);
 terrain.position.set(350, -25, -215);
-terrain.rotation.y = Math.PI;;
+terrain.rotation.y = Math.PI;
+terrain.traverse((child) => {
+  if (child.isMesh) {
+    child.material = new THREE.MeshStandardMaterial({
+      map: child.material.map, // збережемо текстуру
+    });
+  }
+});
 scene.add(terrain);
 
 //Loading car model
