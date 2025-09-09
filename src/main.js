@@ -59,14 +59,14 @@ scene.add(gridHelper);
 document.querySelector('.scrolling').addEventListener('scroll', MoveCamera);
 
 // Loading terrain model
-const terrain = await LoadModel('/models/mars_landscape.glb')
+const terrain = await LoadModel(import.meta.env.BASE_URL + 'models/mars_landscape.glb')
 terrain.scale.set(75, 75, 75);
 terrain.position.set(350, -25, -215);
 terrain.rotation.y = Math.PI;;
 scene.add(terrain);
 
 //Loading car model
-const car = await LoadModel('/models/flying_car_1_low-poly.glb')
+const car = await LoadModel(import.meta.env.BASE_URL + 'models/flying_car_1_low-poly.glb')
 car.scale.set(0.05, 0.05, 0.05);
 car.position.set(0, 2, 0); // Starting position
 scene.add(car);
