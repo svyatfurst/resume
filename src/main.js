@@ -21,43 +21,17 @@ function LoadModel(path) {
   });
 }
 
-// Function to rotate the island
-// function MoveCamera(direction){
-//   if(isRotating) return;
-
-//   isRotating = true;
-//   function SmoothRotation(targetValue){
-//     const interval = setInterval(() => {
-//       if(IslandRotation < IslandRotation + targetValue){
-//         IslandRotation += targetValue * 0.01;
-//       }else
-//         clearInterval(interval);
-//     }, 10);
-//   }
-
-//   if(direction == "right"){
-//     SmoothRotation(-0.5);
-//     terrain.rotation.y = IslandRotation;
-//   }
-
-//   if(direction == "left"){
-//     SmoothRotation(0.5);
-//     terrain.rotation.y = IslandRotation;
-//   }
-//   isRotating = false;
-// }
-
 let targetRotation = 0; // бажаний кут
 let rotatingSpeed = 0.10; // швидкість обертання
 
 function MoveCamera(direction){
   if(isRotating) return;
 
-  if(direction === "right"){
-    targetRotation -= 0.5;
+  if(direction === "right" && IslandRotation > -4.9){
+    targetRotation -= 1;
   }
-  if(direction === "left" && IslandRotation < 0){
-    targetRotation += 0.5;
+  if(direction === "left" && IslandRotation < -0.9){
+    targetRotation += 1;
   }
 }
 
@@ -67,46 +41,74 @@ let isRotating = false;
 let lastScrollTop = 0;
 
 // Detecting movement
-document.addEventListener('keydown', (e) => {
-  if(e.code === 'KeyA'){
-    MoveCamera("left");
-  }
+// document.addEventListener('keydown', (e) => {
+//   if(e.code === 'KeyA'){
+//     MoveCamera("left");
+//   }
 
-  else if(e.code === 'KeyD'){
-    MoveCamera("right");
-  }
-});
+//   else if(e.code === 'KeyD'){
+//     MoveCamera("right");
+//   }
+// });
 
 // Detecting swipe direction
-let startX, startY;
+// let startX, startY;
 
-document.addEventListener('touchstart', (e) => {
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-});
+// document.addEventListener('touchstart', (e) => {
+//     startX = e.touches[0].clientX;
+//     startY = e.touches[0].clientY;
+// });
 
-document.addEventListener('touchend', (e) => {
-    const endX = e.changedTouches[0].clientX;
-    const endY = e.changedTouches[0].clientY;
+// document.addEventListener('touchend', (e) => {
+//     const endX = e.changedTouches[0].clientX;
+//     const endY = e.changedTouches[0].clientY;
 
-    const diffX = endX - startX;
-    const diffY = endY - startY;
+//     const diffX = endX - startX;
+//     const diffY = endY - startY;
 
-    if (Math.abs(diffX) > Math.abs(diffY)) {
-        // Горизонтальний свайп
-        if (diffX > 50) MoveCamera("left");
-        else if (diffX < -50) MoveCamera("right");
-    } else {
-        // Вертикальний свайп
-        if (diffY > 50) console.log('Свайп вниз');
-        else if (diffY < -50) console.log('Свайп вверх');
-    }
+//     if (Math.abs(diffX) > Math.abs(diffY)) {
+//         // Горизонтальний свайп
+//         if (diffX > 50) MoveCamera("left");
+//         else if (diffX < -50) MoveCamera("right");
+//     } else {
+//         // Вертикальний свайп
+//         if (diffY > 50) console.log('Свайп вниз');
+//         else if (diffY < -50) console.log('Свайп вверх');
+//     }
+// });
+
+const contentElements = [
+  [".about", 1000],
+  [".contacts", 1550],
+  [".education", 2100],
+  [".skills", 2650],
+  [".experience", 3200],
+  [".awards", 3750]
+]
+document.querySelector("main").addEventListener('scroll', (e) => {
+  let t = document.querySelector('main').scrollTop;
+  if(t <= 1000){
+    camera.position.set(-150 + (t * 0.135), 50 - (t * 0.04), 0);
+  }else{
+    terrain.rotation.y = (t - 1000) * -0.002;
+  }
+  contentElements.forEach(([selector, position]) => {
+      const element = document.querySelector(selector);
+      const difference = Math.abs(t - position);
+      if(difference <= 250){
+        element.style.opacity = 1 - (difference / 250);
+      }else
+        element.style.opacity = 0;
+
+      console.log(selector, difference);
+    });
+  console.log("Scroll! Top: ", t);
 });
 
 // Creating scene, camera and renderer
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(-60, 20, 0);
+camera.position.set(-150, 50, 0);
 const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector('#bg'),
 });
@@ -142,13 +144,13 @@ scene.add(hemiLight);
 const terrain = await LoadModel(import.meta.env.BASE_URL + 'models/island.glb')
 terrain.scale.set(75, 75, 75);
 terrain.position.set(85, -27.5, 0);
-terrain.rotation.y = Math.PI;
+terrain.rotation.y = IslandRotation;
 scene.add(terrain);
 
 //Loading car model
 const car = await LoadModel(import.meta.env.BASE_URL + 'models/flying_car_1_low-poly.glb')
-car.scale.set(0.025, 0.025, 0.025);
-car.position.set(20, -1.5, 0); // Starting position
+car.scale.set(0.0125, 0.0125, 0.0125);
+car.position.set(20, -3, 0); // Starting position
 scene.add(car);
 
 const EPSILON = 0.0001;
@@ -168,7 +170,7 @@ function animate(now) {
 
   console.log("IslandRotation: ", IslandRotation, " | targetRotation: ", targetRotation, " | isRotating: ", isRotating);
 
-  camera.lookAt(car.position.x, car.position.y + 20, car.position.z);
+  camera.lookAt(car.position.x, car.position.y + 20, car.position.z + 5);
   renderer.render(scene, camera);
 }
 animate();
