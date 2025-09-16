@@ -35,10 +35,52 @@ function MoveCamera(direction){
   }
 }
 
+function AdjustLighting(){
+  let intensity1 = 0;
+  let timePassed1 = 0;
+
+  console.log("Turning on the lights:")
+  const interval1 = setInterval(() => {
+    
+    if(timePassed1 < 12000){
+      pointLights.forEach(light => {
+        light.intensity = intensity1
+      })
+      console.log(timePassed1, intensity1)
+      intensity1 += 0.25
+      timePassed1 += 10
+    }else
+      clearInterval(interval1);
+  }, 10)
+
+      
+  setTimeout(() => {
+      console.log("Turning off the lights:")
+      let intensity2 = 300;
+      let timePassed2 = 0;
+      const interval2 = setInterval(() => {
+        if(timePassed2 < 12000){
+          pointLights.forEach(light => {
+            light.intensity = intensity2
+          })
+          console.log(timePassed2, intensity2)
+          intensity2 -= 0.25
+          timePassed2 += 10
+        }else
+          clearInterval(interval2);
+      }, 10)
+    }, 12000)
+}
+
 // Global variables
 let IslandRotation = 0;
 let isRotating = false;
 let lastScrollTop = 0;
+let lightsGroup = new THREE.Group();
+const sun_and_moon_rotation_group = new THREE.Group();
+// const axesHelper = new THREE.AxesHelper(20); // розмір 20
+// lightsGroup.add(axesHelper);
+lightsGroup.position.setX(85);
 
 // Detecting movement
 // document.addEventListener('keydown', (e) => {
@@ -91,6 +133,8 @@ document.querySelector("main").addEventListener('scroll', (e) => {
     camera.position.set(-150 + (t * 0.135), 50 - (t * 0.04), 0);
   }else{
     terrain.rotation.y = (t - 1000) * -0.002;
+    lightsGroup.rotation.y = (t - 1000) * -0.002;
+    sun_and_moon_rotation_group.rotation.y = (t - 1000) * -0.002;
   }
   contentElements.forEach(([selector, position]) => {
       const element = document.querySelector(selector);
@@ -110,34 +154,45 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(-150, 50, 0);
 const renderer = new THREE.WebGLRenderer({
+  alpha: true,
   canvas: document.querySelector('#bg'),
 });
 
 // Setting scene size and ratio
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setClearColor(0x8ABABA, 1);
+renderer.setClearColor(0xffffff00, 0);
 
 //Adding light to the scene
 const ambientLight = new THREE.AmbientLight(0xffffff, 1);
-ambientLight.intensity = 1;
+ambientLight.intensity = 0.05;
 scene.add(ambientLight);
 
-const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-dirLight.position.set(50, 100, 50);
-scene.add(dirLight);
+const lightCords = [
+  [72 - 85, 0, 65],
+  [142 - 85, 0, 30],
+  [67 - 85, 0, -31],
+  [123 - 85, 0, -39],
+]
 
-const hemiLight = new THREE.HemisphereLight(0x88ccff, 0x444422, 0.5);
-scene.add(hemiLight);
+let pointLights = [];
+scene.add(lightsGroup);
 
+lightCords.forEach(([x, y, z]) => {
+  const pointLight = new THREE.PointLight(0xffffff, 1);
+  pointLight.position.set(x, y, z);
+  pointLight.intensity = 0;
+  pointLights.push(pointLight);
+  lightsGroup.add(pointLight);
 
-// Adding grid helper
-// const gridHelper = new THREE.GridHelper(200, 50);
-// scene.add(gridHelper);
+  // const lightHelper = new THREE.PointLightHelper(pointLight);
+  // scene.add(lightHelper);
+});
+
 
 // Adding controls to the scene
-// const controls = new OrbitControls(camera, renderer.domElement);
-// controls.enableDamping = true;
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
 
 
 // Loading terrain model
@@ -153,22 +208,46 @@ car.scale.set(0.0125, 0.0125, 0.0125);
 car.position.set(20, -3, 0); // Starting position
 scene.add(car);
 
-const EPSILON = 0.0001;
+//Loading sun and moon model
+const sun_and_moon = await LoadModel(import.meta.env.BASE_URL + 'models/sun_and_moon.glb')
+const sun_and_moon_group = new THREE.Group();
+
+sun_and_moon.scale.set(20, 20, 20);
+sun_and_moon.position.set(200 - 85, 0, 0);
+
+const sun_light = new THREE.PointLight(0xffffff, 1);
+sun_light.position.set(150 - 85, 150, 0);
+sun_light.intensity = 100000;
+// const sun_light_helper = new THREE.PointLightHelper(sun_light, 5);
+
+// scene.add(sun_light_helper);
+sun_and_moon_group.add(sun_and_moon, sun_light);
+// const axesHelper = new THREE.AxesHelper(20);
+// sun_and_moon_group.add(axesHelper)
+sun_and_moon_rotation_group.add(sun_and_moon_group);
+sun_and_moon_rotation_group.position.setX(85);
+scene.add(sun_and_moon_rotation_group);
+
+// Sun and moon rotation
+const sun_and_moon_interval = setInterval(() => {
+  sun_and_moon_group.rotation.x += Math.PI / 360 * 0.15;
+}, 10);
+
+// Changing to night light
+setTimeout(() => {
+  AdjustLighting()
+  setInterval(() => {
+    AdjustLighting()
+  }, 42000)
+}, 12000)
+
+
 
 // Main loop function
 function animate(now) {
   requestAnimationFrame(animate);
-  // controls.update();
+  controls.update();
 
-  // Smooth rotation
-  if(Math.abs(targetRotation - IslandRotation) > EPSILON){
-    isRotating = true;
-    IslandRotation += (targetRotation - IslandRotation) * rotatingSpeed;
-    terrain.rotation.y = IslandRotation;
-  }else
-    isRotating = false;
-
-  console.log("IslandRotation: ", IslandRotation, " | targetRotation: ", targetRotation, " | isRotating: ", isRotating);
 
   camera.lookAt(car.position.x, car.position.y + 20, car.position.z + 5);
   renderer.render(scene, camera);
