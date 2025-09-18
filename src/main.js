@@ -35,41 +35,82 @@ function MoveCamera(direction){
   }
 }
 
-function AdjustLighting(){
-  let intensity1 = 0;
-  let timePassed1 = 0;
+// function AdjustLighting(){
+//   let intensity1 = 0;
+//   let timePassed1 = 0;
 
-  console.log("Turning on the lights:")
-  const interval1 = setInterval(() => {
+//   console.log("Turning on the lights:")
+//   const interval1 = setInterval(() => {
     
-    if(timePassed1 < 12000){
-      pointLights.forEach(light => {
-        light.intensity = intensity1
-      })
-      console.log(timePassed1, intensity1)
-      intensity1 += 0.25
-      timePassed1 += 10
-    }else
-      clearInterval(interval1);
-  }, 10)
+//     if(timePassed1 < 12000){
+//       pointLights.forEach(light => {
+//         light.intensity = intensity1
+//       })
+//       console.log(timePassed1, intensity1)
+//       intensity1 += 0.25
+//       timePassed1 += 10
+//     }else
+//       clearInterval(interval1);
+//   }, 10)
 
       
-  setTimeout(() => {
-      console.log("Turning off the lights:")
-      let intensity2 = 300;
-      let timePassed2 = 0;
-      const interval2 = setInterval(() => {
-        if(timePassed2 < 12000){
-          pointLights.forEach(light => {
-            light.intensity = intensity2
-          })
-          console.log(timePassed2, intensity2)
-          intensity2 -= 0.25
-          timePassed2 += 10
-        }else
-          clearInterval(interval2);
-      }, 10)
-    }, 12000)
+//   setTimeout(() => {
+//       console.log("Turning off the lights:")
+//       let intensity2 = 300;
+//       let timePassed2 = 0;
+//       const interval2 = setInterval(() => {
+//         if(timePassed2 < 12000){
+//           pointLights.forEach(light => {
+//             light.intensity = intensity2
+//           })
+//           console.log(timePassed2, intensity2)
+//           intensity2 -= 0.25
+//           timePassed2 += 10
+//         }else
+//           clearInterval(interval2);
+//       }, 10)
+//     }, 12000)
+// }
+
+function AdjustLighting() {
+  const duration = 12000; // 12 секунд
+  const start = performance.now();
+
+  function turnOn(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1); // від 0 до 1
+    const intensity = 300 * progress;
+
+    pointLights.forEach(light => {
+      light.intensity = intensity;
+    });
+
+    if (progress < 1) {
+      requestAnimationFrame(turnOn);
+    } else {
+      // після вмикання запускаємо вимикання
+      turnOff(performance.now());
+    }
+  }
+
+  function turnOff(startTime) {
+    function frame(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const intensity = 300 * (1 - progress);
+
+      pointLights.forEach(light => {
+        light.intensity = intensity;
+      });
+
+      if (progress < 1) {
+        requestAnimationFrame(frame);
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(turnOn);
 }
 
 // Global variables
@@ -120,6 +161,7 @@ lightsGroup.position.setX(85);
 // });
 
 const contentElements = [
+  ['.welcome', 0],
   [".about", 1000],
   [".contacts", 1550],
   [".education", 2100],
@@ -148,6 +190,8 @@ document.querySelector("main").addEventListener('scroll', (e) => {
     });
   console.log("Scroll! Top: ", t);
 });
+
+
 
 // Creating scene, camera and renderer
 const scene = new THREE.Scene();
@@ -229,27 +273,65 @@ sun_and_moon_rotation_group.position.setX(85);
 scene.add(sun_and_moon_rotation_group);
 
 // Sun and moon rotation
-const sun_and_moon_interval = setInterval(() => {
-  sun_and_moon_group.rotation.x += Math.PI / 360 * 0.15;
-}, 10);
+// const sun_and_moon_interval = setInterval(() => {
+//   sun_and_moon_group.rotation.x += Math.PI / 360 * 0.15;
+// }, 10);
 
 // Changing to night light
-setTimeout(() => {
-  AdjustLighting()
-  setInterval(() => {
-    AdjustLighting()
-  }, 42000)
-}, 12000)
+// setTimeout(() => {
+//   AdjustLighting()
+//   setInterval(() => {
+//     AdjustLighting()
+//   }, 42000)
+// }, 12000)
+
+let dayNightStart = performance.now();   // коли почався цикл
+const dayNightPeriod = 48000;            // повний цикл (42s)
+const lightPhaseDuration = 18000;        // скільки триває вмикання/вимикання
+
+function updateDayNight(now) {
+  const elapsed = (now - dayNightStart) % dayNightPeriod; // час у межах циклу
+
+  if (elapsed < lightPhaseDuration) {
+    // фаза "вмикання"
+    const progress = elapsed / lightPhaseDuration;
+    const intensity = 300 * progress;
+    pointLights.forEach(l => l.intensity = intensity);
+  }
+  else if (elapsed < 2 * lightPhaseDuration) {
+    // фаза "вимикання"
+    const progress = (elapsed - lightPhaseDuration) / lightPhaseDuration;
+    const intensity = 300 * (1 - progress);
+    pointLights.forEach(l => l.intensity = intensity);
+  }
+  else {
+    // решту часу світло вимкнене
+    pointLights.forEach(l => l.intensity = 0);
+  }
+}
 
 
+let lastFrameTime = performance.now();
+let lastSunUpdate = performance.now();
+let sun_and_moon_x = sun_and_moon_group.rotation.x;
+let start = Date.now();
+const updateInterval = 10;
 
 // Main loop function
 function animate(now) {
   requestAnimationFrame(animate);
   controls.update();
 
+  const delta = (now - lastFrameTime) / 1000;
+  lastFrameTime = now;
+
+  // updateSunAndMoon(delta);     // сонце/місяць
+  updateDayNight(now);   
+  // sun_and_moon_group.rotation.x += (Math.PI / 360) * 0.15 * delta; 
+  // console.log(delta)
+  sun_and_moon_group.rotation.x = sun_and_moon_x + ((Date.now() - start) / 10) * (Math.PI / 360 * 0.15);
 
   camera.lookAt(car.position.x, car.position.y + 20, car.position.z + 5);
   renderer.render(scene, camera);
 }
-animate();
+animate(performance.now());

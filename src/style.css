@@ -10,11 +10,64 @@
   padding: 0;
 }
 
-@media screen and (min-width: 1280px) {
+
+
+@media screen and (min-width: 1360px) {
   .card{
-    font-size: 32px !important;
+    font-size: 28px !important;
+    line-height: 35px !important;
+  }
+
+  .about{
+    width: 60% !important;
   }
   
+  .contacts{
+    width: 40% !important;
+  }
+
+  .education{
+    width: 70% !important;
+    left: 15% !important;
+  }
+
+  .skills{
+    width: 70% !important;
+  }
+
+  .experience{
+    width: 95% !important;
+  }
+
+  .experience p{
+    font-size: 24px !important;
+    line-height: 32px !important;
+  }
+}
+
+@media screen and (min-width: 2300px) {
+  .scroll-cue{
+    font-size: 24px !important;
+  }
+  .card{
+    font-size: 42px !important;
+    line-height: 48px !important;
+  }
+
+  .experience p{
+    font-size: 40px !important;
+    line-height: 46px !important;
+  }
+
+  .bottom{
+    top: 4700px !important;
+  }
+}
+
+@media screen and (min-width: 3000px) {
+  .bottom{
+    top: 5700px !important;
+  }
 }
 
 @keyframes gradient {
@@ -46,54 +99,120 @@ main{
   z-index: 5;
   overflow-x: hidden;
   overflow-y: auto;
+  scrollbar-width: none;
 }
 
 .card{
   position: absolute;
   background-color: rgb(0, 0, 0);
-  border-radius: 5px;
   display: flex;
   justify-content: center;
   align-items: center;
   color: mintcream;
   font-family: "Ubuntu", sans-serif;
-  font-size: 16px;
+  font-size: 22px;
+  line-height: 27px;
+}
 
+.welcome{
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.welcome .card{
+  position: absolute;
+  left: 50%;
+  top: 100px;
+  height: 100px;
+  width: 200px;
+  transform: translateX(-50%);
+}
+
+.scroll-cue{
+  width: 100%;
+  font-family: monospace;
+  font-size: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  position: absolute;
+  color: white;
+  animation: arrow-appear 1s;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  bottom: 50px;
+  justify-content: center;
+  align-items: center;
+}
+
+@keyframes arrow-appear{
+  from{
+    bottom: 100px;
+    opacity: 0;
+  }
+  to{
+    bottom: 50px;
+    opacity: 100;
+  }
 }
 
 .about{
-  width: 70%;
-  left: 10%;
+  width: 100%;
+  left: 0;
   top: 1100px;
-  height: 300px;
+  opacity: 0;
+  padding: 10px;
 }
 
 .contacts{
-  width: 70%;
-  left: 10%;
+  width: 100%;
+  right: 0;
   top: 1650px;
   height: 20%;
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  opacity: 0;
+}
+
+.contacts a{
+  color: white;
 }
 
 .education{
-  width: 70%;
-  left: 10%;
+  width: calc(100% - 40px);
   top: 2200px;
-  height: 20%;
+  padding: 20px;
+  opacity: 0;
 }
 
 .skills{
-  width: 70%;
-  left: 10%;
+  width: 100%;
+  left: 0;
   top: 2750px;
-  height: 20%;
+  height: 300px;
+  opacity: 0;
 }
 
 .experience{
-  width: 70%;
-  left: 10%;
-  top: 3300px;
-  height: 20%;
+  width: calc(100% - 40px);
+  left: 50%;
+  transform: translateX(-50%);
+  top: 3225px;
+  padding: 20px;
+  opacity: 0;
+}
+
+.experience p{
+  font-size: 18px;
+  line-height: 20px;
+}
+
+.experience a{
+  color: white;
 }
 
 .awards{
@@ -101,6 +220,7 @@ main{
   left: 10%;
   top: 3850px;
   height: 20%;
+  opacity: 0;
 }
 
 .bottom{
