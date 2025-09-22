@@ -27,12 +27,12 @@
   }
 
   .education{
-    width: 70% !important;
-    left: 15% !important;
+    width: calc(50% - 80px) !important;
+    left: 25% !important;
   }
 
   .skills{
-    width: 70% !important;
+    width: 50% !important;
   }
 
   .experience{
@@ -160,11 +160,11 @@ main{
 }
 
 .about{
-  width: 100%;
+  width: calc(100% - 40px);
   left: 0;
   top: 1100px;
   opacity: 0;
-  padding: 10px;
+  padding: 20px;
 }
 
 .contacts{
@@ -183,14 +183,15 @@ main{
 }
 
 .education{
-  width: calc(100% - 40px);
+  width: calc(100% - 80px);
   top: 2200px;
-  padding: 20px;
+  padding: 40px;
   opacity: 0;
 }
 
 .skills{
-  width: 100%;
+  width: calc(100% - 20px);
+  padding: 10px;
   left: 0;
   top: 2750px;
   height: 300px;
